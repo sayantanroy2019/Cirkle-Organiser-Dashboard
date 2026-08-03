@@ -32,3 +32,24 @@ export async function fetchEvent(id, { signal } = {}) {
   const { data } = await api.get(`/organizer/events/${id}`, { signal })
   return data?.event ?? null
 }
+
+/**
+ * GET /organizer/events/:id/attendees — the guest list, as profile cards.
+ *
+ * The response carries NO phone or email: the backend's query never selects
+ * those columns, so there is nothing to render even by accident. Ordered by
+ * ticket creation, newest first.
+ */
+export async function fetchAttendees(eventId, { limit = 24, offset = 0, signal } = {}) {
+  const { data } = await api.get(`/organizer/events/${eventId}/attendees`, {
+    params: { limit, offset },
+    signal,
+  })
+
+  return {
+    attendees: data?.data ?? [],
+    total: data?.total ?? 0,
+    limit: data?.limit ?? limit,
+    offset: data?.offset ?? offset,
+  }
+}

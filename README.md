@@ -48,6 +48,8 @@ src/
     Topbar.jsx             logo left, organizer name + log out right
     EventCard.jsx          one row in the events list
     EventTypeBadge.jsx     Open / Invite-only pill
+    AttendeeCard.jsx       profile card — profile fields only, never contact info
+    CheckInBadge.jsx       Checked in / Not checked in pill
     ImageWithFallback.jsx  placeholder instead of a broken image
   pages/
     LoginPage.jsx          /login
@@ -114,6 +116,11 @@ around from here.
 - Organizers cannot create, edit, or delete events. If a form appears here that
   writes event data, it doesn't belong.
 - Attendee and invitation profiles from the backend intentionally carry no phone
-  number or email. Don't build UI that expects them.
+  number or email — the backend's query never selects those columns
+  (`src/utils/organizerAttendee.js`). `AttendeeCard` renders profile fields
+  only; never add a contact field to it.
+- Attendee check-in is a **boolean only**. The `checked_in_at` timestamp exists
+  in the database but is not part of the organizer payload, so no check-in time
+  can be shown.
 - Photo URLs are short-lived presigned URLs (~1hr). Use them directly in
   `<img src>`; don't cache them — refetch to get fresh ones.

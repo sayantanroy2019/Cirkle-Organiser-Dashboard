@@ -44,6 +44,23 @@ export function formatPaise(paise) {
   }).format(amount / 100)
 }
 
+/**
+ * "Priya, 25" — the platform's public way of naming someone. Falls back
+ * gracefully when a ticket-holder has no profile row yet (name and age both
+ * come back null in that case).
+ */
+export function formatPersonName(firstName, age) {
+  const name = firstName?.trim() || 'Attendee'
+  return Number.isFinite(age) ? `${name}, ${age}` : name
+}
+
+/** "non_binary" → "Non binary". Returns null for the opt-out value. */
+export function formatGender(gender) {
+  if (!gender || gender === 'prefer_not_to_say') return null
+  const spaced = gender.replace(/_/g, ' ')
+  return spaced.charAt(0).toUpperCase() + spaced.slice(1)
+}
+
 /** "137 / 500" when capacity is known, otherwise "137 sold". */
 export function formatTicketsSold(ticketsSold, capacity) {
   const sold = Number.isFinite(ticketsSold) ? ticketsSold : 0
