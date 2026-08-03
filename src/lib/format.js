@@ -44,6 +44,34 @@ export function formatPaise(paise) {
   }).format(amount / 100)
 }
 
+/** "Requested 2 days ago" style relative time, falling back to a full date. */
+export function formatRelativeTime(isoString) {
+  if (!isoString) return null
+  const date = new Date(isoString)
+  if (Number.isNaN(date.getTime())) return null
+
+  const seconds = Math.round((Date.now() - date.getTime()) / 1000)
+  if (seconds < 60) return 'just now'
+
+  // Largest unit that still yields a value of at least 1, capped at weeks —
+  // anything older than roughly a month reads better as an actual date.
+  const steps = [
+    [604800, 'week'],
+    [86400, 'day'],
+    [3600, 'hour'],
+    [60, 'minute'],
+  ]
+
+  if (seconds >= 604800 * 5) return formatEventDateTime(isoString)
+
+  for (const [size, unit] of steps) {
+    const value = Math.floor(seconds / size)
+    if (value >= 1) return `${value} ${unit}${value === 1 ? '' : 's'} ago`
+  }
+
+  return 'just now'
+}
+
 /**
  * "Priya, 25" — the platform's public way of naming someone. Falls back
  * gracefully when a ticket-holder has no profile row yet (name and age both

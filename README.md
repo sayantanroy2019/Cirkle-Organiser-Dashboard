@@ -48,8 +48,11 @@ src/
     Topbar.jsx             logo left, organizer name + log out right
     EventCard.jsx          one row in the events list
     EventTypeBadge.jsx     Open / Invite-only pill
-    AttendeeCard.jsx       profile card — profile fields only, never contact info
+    AttendeeCard.jsx       profile card — profile + handles only, never contact info
+    SocialLinks.jsx        present handles as tappable icons; absent → nothing
+    SocialIcons.jsx        inline brand glyphs (no network images)
     CheckInBadge.jsx       Checked in / Not checked in pill
+    InvitationStatusBadge.jsx  Pending / Accepted / Rejected pill
     ImageWithFallback.jsx  placeholder instead of a broken image
   pages/
     LoginPage.jsx          /login
@@ -57,9 +60,23 @@ src/
     EventDetailPage.jsx    /events/:id — fetches the event, renders tab shell
     event/
       DetailsTab.jsx       /events/:id/details
-      AttendeesTab.jsx     /events/:id/attendees   (placeholder until Section 4)
-      InvitationsTab.jsx   /events/:id/invitations (placeholder until Section 5)
+      AttendeesTab.jsx     /events/:id/attendees
+      InvitationsTab.jsx   /events/:id/invitations — the one write action
 ```
+
+## The one write action
+
+`POST /organizer/invitations/:id/decision` with `{ decision: 'accept' | 'reject' }`
+is the only thing this dashboard changes. Everything else is read-only.
+
+Decisions are **terminal** — the backend returns 409 for an already-decided
+invitation and there is no undo. So a decided card shows a status badge and
+never re-offers the buttons. On 409 the list is refetched rather than guessed
+at, since the 409 body doesn't carry the true status. On a network/500 failure
+the buttons re-enable and nothing is shown as decided.
+
+Accepting is meaningful downstream: the consumer payment gate checks for an
+accepted invitation before letting that user buy a ticket.
 
 Event tabs are nested routes, so each is directly linkable and the back button
 steps through them. The parent fetches the event once and passes it down via
@@ -76,11 +93,19 @@ one.
 
 ## Test account
 
-A test organizer exists in the shared Supabase dev database:
+Test organizers in the shared Supabase dev database:
 
 ```
-test@organizer.com / TestOrg123!
+portal.test@cirkletest.in / PortalOrg123!   # owns 2 events (one invite-only)
+test@organizer.com        / TestOrg123!     # owns none — the empty state
 ```
+
+Two throwaway consumer accounts exist for the invite-only loop, phones
+`+919000000001` (Testuser Alpha, invitation **accepted**) and `+919000000002`
+(Testuser Beta, invitation **rejected**). Consumer login is phone-as-password
+via `POST /auth/login`. Both invitations are now in terminal states and cannot
+be reset — a fresh consumer account is needed to exercise a pending request
+again.
 
 Created via `POST /admin/organizers` using the seeded founder admin
 (`founder@cirkle.live`). To make another, get an admin token from
@@ -119,6 +144,11 @@ around from here.
   number or email — the backend's query never selects those columns
   (`src/utils/organizerAttendee.js`). `AttendeeCard` renders profile fields
   only; never add a contact field to it.
+- Attendee and invitation cards carry `instagram`, `facebook`, `linkedin` —
+  **bare handles**, normalized server-side on write, so links are built by
+  concatenation: `instagram.com/{h}`, `facebook.com/{h}`, `linkedin.com/in/{h}`.
+  A null/blank handle renders nothing at all. Handles are self-entered and
+  unverified: they prove shape, never identity. Shown for every event type.
 - Attendee check-in is a **boolean only**. The `checked_in_at` timestamp exists
   in the database but is not part of the organizer payload, so no check-in time
   can be shown.

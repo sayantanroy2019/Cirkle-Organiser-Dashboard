@@ -53,3 +53,40 @@ export async function fetchAttendees(eventId, { limit = 24, offset = 0, signal }
     offset: data?.offset ?? offset,
   }
 }
+
+/**
+ * GET /organizer/events/:id/invitations — requests to attend an invite-only
+ * event, as profile cards. Same no-phone/no-email guarantee as attendees.
+ * Defaults to `pending`, the set that still needs a decision.
+ */
+export async function fetchInvitations(
+  eventId,
+  { status = 'pending', limit = 24, offset = 0, signal } = {},
+) {
+  const { data } = await api.get(`/organizer/events/${eventId}/invitations`, {
+    params: { status, limit, offset },
+    signal,
+  })
+
+  return {
+    invitations: data?.data ?? [],
+    total: data?.total ?? 0,
+    limit: data?.limit ?? limit,
+    offset: data?.offset ?? offset,
+  }
+}
+
+/**
+ * POST /organizer/invitations/:id/decision — the only write action in the
+ * dashboard. Accepting lets the requester buy a ticket; the backend's payment
+ * gate reads this.
+ *
+ * Decisions are terminal: deciding an already-decided invitation returns 409,
+ * and there is no way to undo one. 404 means it isn't this organizer's.
+ */
+export async function decideInvitation(invitationId, decision) {
+  const { data } = await api.post(`/organizer/invitations/${invitationId}/decision`, {
+    decision,
+  })
+  return data // { invitationId, status }
+}
