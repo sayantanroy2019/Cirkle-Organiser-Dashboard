@@ -20,3 +20,15 @@ export async function fetchEvents({ limit = 50, offset = 0, signal } = {}) {
     offset: data?.offset ?? offset,
   }
 }
+
+/**
+ * GET /organizer/events/:id — full detail, enveloped as { event }.
+ *
+ * The backend returns 404 both for a nonexistent event and for one belonging
+ * to another organizer, so existence is never confirmed to the wrong person.
+ * Callers treat 404 as a plain "not found".
+ */
+export async function fetchEvent(id, { signal } = {}) {
+  const { data } = await api.get(`/organizer/events/${id}`, { signal })
+  return data?.event ?? null
+}

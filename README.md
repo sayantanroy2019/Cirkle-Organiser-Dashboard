@@ -39,19 +39,34 @@ src/
   api/
     client.js              axios instance, auth + ngrok headers, 401 handling
     organizer.js           /organizer/* endpoint calls
+    reference.js           category/city id → label, fetched once and memoised
   store/authStore.js       Zustand session store (token + organizer), persisted
-  lib/format.js            IST date formatting, tickets-sold text
+  lib/format.js            IST dates, paise → ₹, tickets-sold text
   components/
     ProtectedRoute.jsx     redirects to /login when there's no session
     Layout.jsx             authenticated frame (topbar + content)
     Topbar.jsx             logo left, organizer name + log out right
     EventCard.jsx          one row in the events list
+    EventTypeBadge.jsx     Open / Invite-only pill
     ImageWithFallback.jsx  placeholder instead of a broken image
   pages/
     LoginPage.jsx          /login
     EventsPage.jsx         /events
-    EventDetailPage.jsx    /events/:id  (placeholder until Section 3)
+    EventDetailPage.jsx    /events/:id — fetches the event, renders tab shell
+    event/
+      DetailsTab.jsx       /events/:id/details
+      AttendeesTab.jsx     /events/:id/attendees   (placeholder until Section 4)
+      InvitationsTab.jsx   /events/:id/invitations (placeholder until Section 5)
 ```
+
+Event tabs are nested routes, so each is directly linkable and the back button
+steps through them. The parent fetches the event once and passes it down via
+router outlet context. **Invitations is hidden for `open` events** — they have
+no invitation flow — and the URL redirects to Details if reached by hand.
+
+All money is paise on the wire; `formatPaise` renders ₹ and shows decimals only
+when there's a paise remainder (75050 → ₹750.50, 50000 → ₹500). Gross sales is
+labelled as gross collected, explicitly not a payout figure.
 
 Times are rendered in IST (`Asia/Kolkata`) regardless of device timezone —
 events are held in Indian cities, so the venue's local time is the meaningful

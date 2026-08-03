@@ -29,6 +29,21 @@ export function formatEventDateTime(isoString) {
   return `${get('day')} ${get('month')} ${get('year')}, ${get('hour')}:${get('minute')} ${get('dayPeriod').toUpperCase()}`
 }
 
+/**
+ * Paise → rupees, e.g. 75050 → "₹750.50", 50000 → "₹500".
+ * Decimals appear only when there's a paise remainder.
+ */
+export function formatPaise(paise) {
+  const amount = Number.isFinite(paise) ? paise : 0
+  const hasPaise = amount % 100 !== 0
+  return new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR',
+    minimumFractionDigits: hasPaise ? 2 : 0,
+    maximumFractionDigits: hasPaise ? 2 : 0,
+  }).format(amount / 100)
+}
+
 /** "137 / 500" when capacity is known, otherwise "137 sold". */
 export function formatTicketsSold(ticketsSold, capacity) {
   const sold = Number.isFinite(ticketsSold) ? ticketsSold : 0
