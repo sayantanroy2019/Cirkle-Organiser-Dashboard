@@ -36,16 +36,26 @@ its HTML interstitial instead of JSON.
 
 ```
 src/
-  api/client.js            axios instance, auth + ngrok headers, 401 handling
+  api/
+    client.js              axios instance, auth + ngrok headers, 401 handling
+    organizer.js           /organizer/* endpoint calls
   store/authStore.js       Zustand session store (token + organizer), persisted
+  lib/format.js            IST date formatting, tickets-sold text
   components/
     ProtectedRoute.jsx     redirects to /login when there's no session
     Layout.jsx             authenticated frame (topbar + content)
     Topbar.jsx             logo left, organizer name + log out right
+    EventCard.jsx          one row in the events list
+    ImageWithFallback.jsx  placeholder instead of a broken image
   pages/
     LoginPage.jsx          /login
-    EventsPage.jsx         /events  (placeholder until Section 2)
+    EventsPage.jsx         /events
+    EventDetailPage.jsx    /events/:id  (placeholder until Section 3)
 ```
+
+Times are rendered in IST (`Asia/Kolkata`) regardless of device timezone —
+events are held in Indian cities, so the venue's local time is the meaningful
+one.
 
 ## Test account
 

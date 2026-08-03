@@ -3,6 +3,7 @@ import ProtectedRoute from './components/ProtectedRoute'
 import Layout from './components/Layout'
 import LoginPage from './pages/LoginPage'
 import EventsPage from './pages/EventsPage'
+import EventDetailPage from './pages/EventDetailPage'
 import NotFoundPage from './pages/NotFoundPage'
 
 export default function App() {
@@ -15,7 +16,8 @@ export default function App() {
           <Route element={<Layout />}>
             <Route path="/" element={<Navigate to="/events" replace />} />
             <Route path="/events" element={<EventsPage />} />
-            {/* /events/:id (detail with tabs) lands in Section 3. */}
+            <Route path="/events/:id" element={<EventDetailPage />} />
+            {/* Tabs inside the detail page land in Section 3. */}
             <Route path="*" element={<NotFoundPage />} />
           </Route>
         </Route>
