@@ -144,6 +144,14 @@ around from here.
   number or email — the backend's query never selects those columns
   (`src/utils/organizerAttendee.js`). `AttendeeCard` renders profile fields
   only; never add a contact field to it.
+- **Price and capacity live on ticket categories, not the event.** The event no
+  longer carries `price` or `capacity`. Instead: `ticketCategories[]` (detail
+  only), plus `priceRange: {minPaise, maxPaise} | null` and
+  `capacitySummary: {totalTickets, totalPeople, hasUnlimited}` on both list and
+  detail. Per tier, `ticketQuantity` has three distinct meanings — `null` is
+  unlimited, `0` is nothing to sell, `N` is capped — and they must never be
+  collapsed. An event with **no categories** is unconfigured, not unlimited;
+  conflating those is what made a capped event read as uncapped.
 - Attendee and invitation cards carry `instagram`, `facebook`, `linkedin` —
   **bare handles**, normalized server-side on write, so links are built by
   concatenation: `instagram.com/{h}`, `facebook.com/{h}`, `linkedin.com/in/{h}`.

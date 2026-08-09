@@ -1,10 +1,16 @@
 import { Link } from 'react-router-dom'
 import ImageWithFallback from './ImageWithFallback'
 import EventTypeBadge from './EventTypeBadge'
-import { formatEventDateTime, formatTicketsSold } from '../lib/format'
+import {
+  formatEventDateTime,
+  formatPriceRange,
+  formatTicketsSold,
+} from '../lib/format'
 
 export default function EventCard({ event }) {
   const when = formatEventDateTime(event.startsAt)
+  // Price lives on the ticket categories now; the list card gets the range.
+  const price = formatPriceRange(event.priceRange)
 
   return (
     <Link
@@ -32,7 +38,8 @@ export default function EventCard({ event }) {
             it stays visually attached to the content on wide screens too. */}
         <div className="mt-0.5 flex items-center gap-2">
           <p className="truncate text-sm font-medium text-gray-700">
-            {formatTicketsSold(event.ticketsSold, event.capacity)}
+            {formatTicketsSold(event.ticketsSold, event.capacitySummary)}
+            {price && <span className="font-normal text-gray-500"> · {price}</span>}
           </p>
           <EventTypeBadge eventType={event.eventType} />
         </div>

@@ -1,6 +1,13 @@
 import { useOutletContext } from 'react-router-dom'
 import ImageWithFallback from '../../components/ImageWithFallback'
-import { formatEventDateTime, formatPaise } from '../../lib/format'
+import {
+  describeCapacity,
+  formatEventDateTime,
+  formatPaise,
+  formatPriceRange,
+  formatSoldFraction,
+  formatTierQuantity,
+} from '../../lib/format'
 
 function Stat({ label, value, note }) {
   return (
@@ -31,6 +38,7 @@ export default function DetailsTab() {
   const category = labels.categories[event.categoryId] ?? event.categoryId
   const city = labels.cities[event.cityId] ?? event.cityId
   const gallery = event.gallery ?? []
+  const ticketCategories = event.ticketCategories ?? []
 
   return (
     <div className="space-y-8">
@@ -45,12 +53,8 @@ export default function DetailsTab() {
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Stat
             label="Tickets sold"
-            value={
-              event.capacity
-                ? `${event.ticketsSold ?? 0} / ${event.capacity}`
-                : `${event.ticketsSold ?? 0}`
-            }
-            note={event.capacity ? `Capacity ${event.capacity}` : 'No capacity limit'}
+            value={formatSoldFraction(event.ticketsSold, event.capacitySummary)}
+            note={describeCapacity(event.capacitySummary)}
           />
           <Stat
             label="Gross sales"
@@ -73,8 +77,57 @@ export default function DetailsTab() {
           </Fact>
           <Fact label="City">{city}</Fact>
           <Fact label="Category">{category}</Fact>
-          <Fact label="Ticket price">{formatPaise(event.price)}</Fact>
+          <Fact label="Ticket price">{formatPriceRange(event.priceRange)}</Fact>
         </dl>
+      </section>
+
+      <section>
+        <h2 className="text-sm font-semibold text-gray-900">Ticket categories</h2>
+
+        {ticketCategories.length === 0 ? (
+          <p className="mt-2 rounded-lg border border-dashed border-gray-300 p-4 text-sm text-gray-500">
+            No ticket categories are configured for this event yet, so no
+            tickets can be sold. Contact Cirkle to set them up.
+          </p>
+        ) : (
+          <div className="mt-3 overflow-x-auto">
+            <table className="w-full min-w-lg text-left text-sm">
+              <thead>
+                <tr className="border-b border-gray-200 text-xs text-gray-500">
+                  <th scope="col" className="pb-2 pr-4 font-medium">Category</th>
+                  <th scope="col" className="pb-2 pr-4 font-medium">Price</th>
+                  <th scope="col" className="pb-2 pr-4 font-medium">Admits</th>
+                  <th scope="col" className="pb-2 pr-4 font-medium">Inventory</th>
+                  <th scope="col" className="pb-2 font-medium">Sold</th>
+                </tr>
+              </thead>
+              <tbody>
+                {ticketCategories.map((tier) => (
+                  <tr key={tier.id} className="border-b border-gray-100 last:border-b-0">
+                    <td className="py-2.5 pr-4 font-medium text-gray-900">
+                      {tier.categoryName}
+                    </td>
+                    <td className="py-2.5 pr-4 text-gray-700">
+                      {formatPaise(tier.pricePaise)}
+                    </td>
+                    <td className="py-2.5 pr-4 text-gray-700">
+                      {tier.admitsCount} {tier.admitsCount === 1 ? 'person' : 'people'}
+                    </td>
+                    <td className="py-2.5 pr-4 text-gray-700">
+                      {formatTierQuantity(tier)}
+                      {!tier.isUnlimited && tier.ticketQuantity > 0 && (
+                        <span className="block text-xs text-gray-500">
+                          {tier.peopleCapacity} people
+                        </span>
+                      )}
+                    </td>
+                    <td className="py-2.5 text-gray-700">{tier.ticketsSold ?? 0}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </section>
 
       {event.description && (

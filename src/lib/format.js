@@ -89,8 +89,75 @@ export function formatGender(gender) {
   return spaced.charAt(0).toUpperCase() + spaced.slice(1)
 }
 
-/** "137 / 500" when capacity is known, otherwise "137 sold". */
-export function formatTicketsSold(ticketsSold, capacity) {
+/**
+ * Price across an event's ticket categories: "₹500" when every tier costs the
+ * same, "₹500 – ₹900" when they differ, null when no tiers are configured.
+ */
+export function formatPriceRange(priceRange) {
+  if (!priceRange) return null
+  const { minPaise, maxPaise } = priceRange
+  if (!Number.isFinite(minPaise)) return null
+  return minPaise === maxPaise
+    ? formatPaise(minPaise)
+    : `${formatPaise(minPaise)} – ${formatPaise(maxPaise)}`
+}
+
+/**
+ * Sold-versus-inventory line, in TICKETS.
+ *
+ * Capacity lives on the ticket categories now, summarised by the backend as
+ * { totalTickets, totalPeople, hasUnlimited }. Three states must stay distinct:
+ *
+ *   - an unlimited tier exists  -> no meaningful denominator
+ *   - finite inventory          -> "12 / 140 sold"
+ *   - no categories configured  -> also no denominator, but NOT "unlimited";
+ *                                  an unconfigured event sells nothing
+ */
+export function formatSoldFraction(ticketsSold, capacitySummary) {
   const sold = Number.isFinite(ticketsSold) ? ticketsSold : 0
-  return capacity ? `${sold} / ${capacity} sold` : `${sold} sold`
+  const total = capacitySummary?.totalTickets
+
+  if (capacitySummary?.hasUnlimited) return `${sold}`
+  if (Number.isFinite(total) && total > 0) return `${sold} / ${total}`
+  return `${sold}`
+}
+
+/** The same figure with its unit, for inline use on a list card. */
+export function formatTicketsSold(ticketsSold, capacitySummary) {
+  return `${formatSoldFraction(ticketsSold, capacitySummary)} sold`
+}
+
+/** True when the event has no ticket categories at all — nothing to sell. */
+export function hasNoTicketCategories(capacitySummary) {
+  if (!capacitySummary) return true
+  return !capacitySummary.hasUnlimited && !capacitySummary.totalTickets
+}
+
+/**
+ * The supporting line under the sold count. Deliberately never claims
+ * "unlimited" for an event that simply has no categories configured — those
+ * are opposite states, and conflating them is what made an unconfigured event
+ * read as uncapped.
+ */
+export function describeCapacity(capacitySummary) {
+  if (hasNoTicketCategories(capacitySummary)) {
+    return 'No ticket categories configured'
+  }
+
+  const { totalPeople, totalTickets, hasUnlimited } = capacitySummary
+
+  if (hasUnlimited) {
+    return totalTickets > 0
+      ? `${totalTickets} tickets for ${totalPeople} people, plus an unlimited tier`
+      : 'Unlimited tickets'
+  }
+
+  return `Admits up to ${totalPeople} ${totalPeople === 1 ? 'person' : 'people'}`
+}
+
+/** Per-tier stock: "100 tickets", "Unlimited", or "None available". */
+export function formatTierQuantity(category) {
+  if (category.isUnlimited) return 'Unlimited'
+  if (!category.ticketQuantity) return 'None available'
+  return `${category.ticketQuantity} ${category.ticketQuantity === 1 ? 'ticket' : 'tickets'}`
 }
