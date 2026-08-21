@@ -50,11 +50,16 @@ export default function DetailsTab() {
 
       <section>
         <h2 className="sr-only">Sales</h2>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           <Stat
             label="Tickets sold"
             value={formatSoldFraction(event.ticketsSold, event.capacitySummary)}
             note={describeCapacity(event.capacitySummary)}
+          />
+          <Stat
+            label="Checked in"
+            value={`${event.checkedInCount ?? 0} / ${event.ticketsSold ?? 0}`}
+            note="Ticket-holders who have entered the event."
           />
           <Stat
             label="Gross sales"
