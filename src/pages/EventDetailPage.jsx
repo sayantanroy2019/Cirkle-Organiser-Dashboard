@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from 'react'
-import { Link, NavLink, Outlet, useParams } from 'react-router-dom'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { Link, NavLink, Outlet, useLocation, useParams } from 'react-router-dom'
 import { fetchEvent } from '../api/organizer'
 import { fetchReferenceLabels } from '../api/reference'
 import EventTypeBadge from '../components/EventTypeBadge'
@@ -40,8 +40,10 @@ export default function EventDetailPage() {
   const [status, setStatus] = useState('loading') // loading | ready | notFound | error
 
   const load = useCallback(
-    async ({ signal } = {}) => {
-      setStatus('loading')
+    async ({ signal, silent = false } = {}) => {
+      // silent = a background refresh: keep showing what we have while the
+      // fresh copy is in flight, instead of collapsing into the skeleton.
+      if (!silent) setStatus('loading')
       try {
         // Resolved together so the details panel never flashes raw ids
         // ("del", "concert") before the labels land. The reference lookup
@@ -55,6 +57,9 @@ export default function EventDetailPage() {
         setStatus(result ? 'ready' : 'notFound')
       } catch (err) {
         if (err.code === 'ERR_CANCELED') return
+        // A failed background refresh keeps the data already on screen —
+        // a stale page beats an error page for an update nobody asked for.
+        if (silent) return
         // 404 covers both a bad id and an event belonging to another
         // organizer — the backend deliberately doesn't distinguish.
         setStatus(err.response?.status === 404 ? 'notFound' : 'error')
@@ -68,6 +73,28 @@ export default function EventDetailPage() {
     load({ signal: controller.signal })
     return () => controller.abort()
   }, [load])
+
+  // Refetch whenever the user switches tabs, so the shared event snapshot
+  // can never go stale next to a tab that just fetched fresh data (the
+  // "Details says 5 sold beside Attendees showing 13 people" bug: the
+  // snapshot was hours old; the attendee list was live). Silent, so the
+  // page keeps its numbers while the fresh ones are in flight.
+  const { pathname } = useLocation()
+  const firstTab = useRef(true)
+  useEffect(() => {
+    // A new event id remounts the flow: let the loading effect above own
+    // that fetch and skip the tab-effect's duplicate.
+    firstTab.current = true
+  }, [id])
+  useEffect(() => {
+    if (firstTab.current) {
+      firstTab.current = false
+      return
+    }
+    const controller = new AbortController()
+    load({ signal: controller.signal, silent: true })
+    return () => controller.abort()
+  }, [pathname, load])
 
   if (status === 'loading') return <DetailSkeleton />
 
