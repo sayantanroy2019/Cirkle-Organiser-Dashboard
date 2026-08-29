@@ -82,6 +82,22 @@ export default function DetailsTab() {
           </Fact>
           <Fact label="City">{city}</Fact>
           <Fact label="Category">{category}</Fact>
+          {event.googleFormUrl && (
+            <Fact label="Questions form">
+              <a
+                href={event.googleFormUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="break-all text-brand hover:text-brand-dark"
+              >
+                {event.googleFormUrl}
+              </a>
+              <span className="mt-0.5 block text-gray-500">
+                Applicants confirm they've filled this before requesting an
+                invitation — review responses in Google Forms before accepting.
+              </span>
+            </Fact>
+          )}
           <Fact label="Ticket price">{formatPriceRange(event.priceRange)}</Fact>
         </dl>
       </section>
