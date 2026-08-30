@@ -93,8 +93,9 @@ export default function DetailsTab() {
                 {event.googleFormUrl}
               </a>
               <span className="mt-0.5 block text-gray-500">
-                Applicants confirm they've filled this before requesting an
-                invitation — review responses in Google Forms before accepting.
+                {event.eventType === 'invite_only'
+                  ? "Applicants confirm they've filled this before requesting an invitation — review responses in Google Forms before accepting."
+                  : "Buyers confirm they've filled this before purchasing a ticket — responses are in Google Forms."}
               </span>
             </Fact>
           )}
