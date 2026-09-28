@@ -111,6 +111,20 @@ export default function AttendeeCard({ person, badge, actions }) {
           </div>
         )}
 
+        {/* A cart booking brings a group on one QR — the organizer needs the
+            head count per card. Invitation cards carry no admitsCount and
+            single-person tickets say nothing extra. */}
+        {person.admitsCount > 1 && (
+          <p className="text-xs font-medium text-gray-700">
+            Admits {person.admitsCount} people
+            {person.items?.length > 0 && (
+              <span className="font-normal text-gray-500">
+                {' '}· {person.items.map((i) => `${i.quantity}× ${i.categoryName}`).join(' · ')}
+              </span>
+            )}
+          </p>
+        )}
+
         {person.tagline && (
           <p className="text-sm text-gray-700">{person.tagline}</p>
         )}
