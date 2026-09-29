@@ -128,6 +128,11 @@ export default function DetailsTab() {
                   <tr key={tier.id} className="border-b border-gray-100 last:border-b-0">
                     <td className="py-2.5 pr-4 font-medium text-gray-900">
                       {tier.categoryName}
+                      {tier.note && (
+                        <span className="block max-w-xs text-xs font-normal text-gray-500">
+                          {tier.note}
+                        </span>
+                      )}
                     </td>
                     <td className="py-2.5 pr-4 text-gray-700">
                       {formatPaise(tier.pricePaise)}
